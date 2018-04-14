@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class _Generation : MonoBehaviour {
 
@@ -71,9 +72,13 @@ public class _Generation : MonoBehaviour {
 	private bool candestroy = true;
 
 	public AudioClip[] musics;
+	public AudioMixerGroup reverb;
+
+	DataWrite dw;
 
 	void Start () {
 		HSVConverter = GetComponent<HSVtoRGB> ();
+		dw = GetComponent<DataWrite> ();
 		musics = ShuffleACList (musics);
 		Setup ();
 	}
@@ -454,6 +459,14 @@ public class _Generation : MonoBehaviour {
 	}
 
 	void Update () {
+		if (Input.GetKeyDown(KeyCode.Escape)){
+			Application.Quit();
+		}
+
+		if (Input.GetKeyDown (KeyCode.Space)) {
+			dw.AddLine();
+		}
+
 		if (Input.GetKeyDown (KeyCode.Space) && candestroy) {
 			StopAllCoroutines ();
 			candestroy = false;
@@ -465,6 +478,7 @@ public class _Generation : MonoBehaviour {
 	void NewAudio(AudioClip ac) {
 		AudioSource a = gameObject.AddComponent<AudioSource> ();
 		a.clip = ac;
+		a.outputAudioMixerGroup = reverb;
 		a.loop = true;
 		a.volume = 0;
 		a.Play ();
