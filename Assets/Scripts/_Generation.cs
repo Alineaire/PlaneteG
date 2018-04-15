@@ -5,7 +5,20 @@ using UnityEngine.Audio;
 
 public class _Generation : MonoBehaviour {
 
+	float musicVolumeControl = 1f;
+
 	public ParticleSystem[] destruction;
+	public AudioClip exploSFX;
+
+	public AudioClip treeSFX;
+	public AudioClip buildingSFX;
+
+	public AudioClip startSFX;
+	public AudioClip rockMergeSFX;
+	public AudioClip waterSFX;
+	public AudioClip landSFX;
+
+	private bool doAudio = true;
 
 	private int step = 0;
 	private float moonScale = 10;
@@ -488,7 +501,7 @@ public class _Generation : MonoBehaviour {
 		float 	t = time;
 		while (t > 0) {
 			t -= Time.deltaTime;
-			float lerp = 1 - (t / time);
+			float lerp = 1 - (t / time) * musicVolumeControl;
 			a.volume = lerp;
 			yield return null;
 		}
@@ -532,19 +545,27 @@ public class _Generation : MonoBehaviour {
 			p.Play ();
 		}
 
+		AudioSource aa =  gameObject.AddComponent<AudioSource> ();
+		aa.clip = exploSFX;
+		aa.Play ();
 
 
-		//yield return new WaitForSeconds (3);
-		float t = 3;
+
+		yield return new WaitForSeconds (0);
+		float soundFadeTime = 1f;
+		float t = soundFadeTime;
 		while (t > 0) {
 			t -= Time.deltaTime;
-			float lerp = 1 - (t / time);
+			float lerp = 1 - (t / soundFadeTime);
 			foreach (AudioSource a in GetComponents<AudioSource>()) {
-				a.volume = 1 - lerp;
+				if (a.clip != exploSFX) {
+					a.volume = (1 - lerp) * musicVolumeControl;
+				}
 			}
 			yield return null;
 		}
-		yield return new WaitForSeconds (0);
+
+		yield return new WaitForSeconds (3 - soundFadeTime);
 
 
 		t = time;
@@ -555,7 +576,11 @@ public class _Generation : MonoBehaviour {
 			yield return null;
 		}
 		g_parent.transform.localScale = Vector3.zero;
-		yield return new WaitForSeconds (2);
+
+
+		yield return new WaitForSeconds (4);
+
+
 		UnityEngine.SceneManagement.SceneManager.LoadScene (1);
 	}
 
@@ -568,8 +593,8 @@ public class _Generation : MonoBehaviour {
 			break;
 		case 1: 
 			NewAudio (musics [0]);
-			NewAudio (musics [1]);
-			NewAudio (musics [2]);
+			//NewAudio (musics [1]);
+			//NewAudio (musics [2]);
 			StartCoroutine (audioup(GetComponents<AudioSource>()[0], 1));
 			Appear (g_spark, false, 0.001f, 2f);
 			Appear (g_dust, 0.001f);
@@ -585,7 +610,7 @@ public class _Generation : MonoBehaviour {
 			Appear (g_dust, false,  0.001f);
 			break;
 		case 4 : 
-			StartCoroutine (audioup(GetComponents<AudioSource>()[1], 1));
+			//StartCoroutine (audioup(GetComponents<AudioSource>()[1], 1));
 			Appear (g_water, 3f, 1f);
 			break;
 		case 5: 
@@ -596,7 +621,7 @@ public class _Generation : MonoBehaviour {
 			Appear (g_land, 4f, 2f);
 			break;
 		case 7 : 
-			StartCoroutine (audioup(GetComponents<AudioSource>()[2], 1));
+			//StartCoroutine (audioup(GetComponents<AudioSource>()[2], 1));
 			Appear (g_trees, 5f, 2f);
 			break;
 		case 8 : 
@@ -630,6 +655,24 @@ public class _Generation : MonoBehaviour {
 		float t = time;
 		float r = Random.value;
 
+		if (part.name == "Trees") {
+			StartCoroutine (PopulationSFX (time, 0.25f , treesBits.Count, treeSFX));
+		}
+		if (part.name == "Urban") {
+			StartCoroutine (PopulationSFX (time, 0.25f , urbanBits.Count, buildingSFX));
+		}
+		/*if (part.name == "Dust") {
+			StartCoroutine (SingleClip (startSFX, false, 0));
+		}*/
+		if (part.name == "PlanetBits" && mergeBits) {
+			StartCoroutine (SingleClip (rockMergeSFX, false, 0));
+		}
+		if (part.name == "Water") {
+			StartCoroutine (SingleClip (waterSFX, false, 1));
+		}
+		if (part.name == "Land") {
+			StartCoroutine (SingleClip (landSFX, false, 2));
+		}
 
 		while (t > 0) {
 			t -= Time.deltaTime;
@@ -755,7 +798,33 @@ public class _Generation : MonoBehaviour {
 	}
 
 
+	IEnumerator SingleClip (AudioClip c, bool prop, float delay) {
+		yield return new WaitForSeconds (delay);
+		AudioSource a = gameObject.AddComponent<AudioSource> ();
+		a.clip = c;
+		a.Play ();
 
+		float t = c.length;
+		if (prop) {
+			a.volume = 0.25f;
+			a.pitch = Random.Range (0.75f, 1.25f);
+			t = 1;
+		}
+		yield return new WaitForSeconds (t);
+		Destroy (a);
+	}
+
+	IEnumerator PopulationSFX(float totalTime, float endTime, int amt,AudioClip c) {
+
+		yield return new WaitForSeconds (0.05f);
+		float split = (totalTime - endTime) / amt;
+
+		for (int i = 0; i < amt; i++) {
+			StartCoroutine (SingleClip (c, true, 0));
+			yield return new WaitForSeconds (split);
+		}
+
+	}
 
 
 	Color[] NewSet(){

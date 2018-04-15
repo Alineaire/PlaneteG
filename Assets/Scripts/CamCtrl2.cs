@@ -31,8 +31,11 @@ public class CamCtrl2 : MonoBehaviour {
 
 		debugFrame.enabled = false;
 		canvas.SetActive (false);
+		Cursor.visible = false;
 
 		SetSliders ();
+
+
 	}
 
 	void Update () {
@@ -42,6 +45,7 @@ public class CamCtrl2 : MonoBehaviour {
 		if (Input.GetKeyDown (KeyCode.F5)) {
 			canvas.SetActive (!canvas.activeSelf);
 			debugFrame.enabled = !debugFrame.enabled;
+			Cursor.visible = !Cursor.visible;
 		}
 	}
 
