@@ -7,6 +7,8 @@ public class CamCtrl2 : MonoBehaviour {
 
 	public GameObject canvas;
 
+	private bool hasStarted = false; // distry debugging
+
 	Transform rota;
 	Transform frameParent;
 	MeshRenderer debugFrame;
@@ -21,6 +23,8 @@ public class CamCtrl2 : MonoBehaviour {
 	float[] valuemuls = { 20, 20, 10, 2.5f, 60, 90 };
 	float[] valuesubs = { 10, 10, 0, -0.5f, -30, 45 };
 
+	string[] paramNames = {"UD", "LR", "Dist", "Frame", "FOV", "rotate"};
+
 	void Start () {
 		c = GetComponent<Camera> ();
 		rota = transform.parent ;
@@ -33,9 +37,10 @@ public class CamCtrl2 : MonoBehaviour {
 		canvas.SetActive (false);
 		Cursor.visible = false;
 
+		LoadParameters();
 		SetSliders ();
 
-
+		hasStarted = true;
 	}
 
 	void Update () {
@@ -108,6 +113,10 @@ public class CamCtrl2 : MonoBehaviour {
 			rota.eulerAngles = Vector3.right * values [5];
 			break;
 		}
+
+		if (hasStarted) {
+			SaveParameters ();
+		}
 	}
 
 	void UpdateSky(){
@@ -121,5 +130,25 @@ public class CamCtrl2 : MonoBehaviour {
 		// also have sky change tint
 		Color c = hsv.Convert(Time.realtimeSinceStartup * 0.6f, 1, 0.69f);
 		sky.SetColor ("_Tint", c);
+	}
+
+	// 0 = UDpos, 1 = LRpos, 2 = Dist, 3 = FrameSize, 4 = FOV, 5 = rotate
+
+	void LoadParameters() {
+		for (int i = 0; i < 6; i++) {
+			if (PlayerPrefs.HasKey (paramNames [i])) {
+				sliders[i].value = PlayerPrefs.GetFloat (paramNames [i]);
+			} else {
+				PlayerPrefs.SetFloat (paramNames [i], 0.5f);
+				sliders[i].value = 0.5f;
+			}
+		}
+	}
+
+	void SaveParameters() {
+		for (int i = 0; i < 6; i++) {
+			Debug.Log (paramNames [i]);
+			PlayerPrefs.SetFloat (paramNames [i], sliders[i].value);
+		}
 	}
 }
